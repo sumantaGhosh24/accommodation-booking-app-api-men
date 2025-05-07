@@ -1,1 +1,1 @@
-# accommodation-booking-app-api-men
+# Accommodation Booking App API
