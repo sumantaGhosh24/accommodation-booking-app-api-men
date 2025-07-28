@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import bcrypt from "bcryptjs";
 import {faker} from "@faker-js/faker";
 
 import User from "./models/userModel";
@@ -16,15 +17,45 @@ const seedDB = async () => {
   try {
     console.log("Database seeding started...");
 
+    console.log("Creating admin...");
+    const admin = new User({
+      email: faker.internet
+        .email({firstName: "test", lastName: "admin"})
+        .toLowerCase(),
+      mobileNumber: faker.phone.number({style: "international"}),
+      password: await bcrypt.hash("test@admin", 10),
+      firstName: "test",
+      lastName: "admin",
+      username: faker.internet.username({firstName: "test", lastName: "admin"}),
+      image: {
+        public_id: "accommodation-booking/tmp-1-1753507651178_azu5rk",
+        url: "https://res.cloudinary.com/dzqgzsnoc/image/upload/v1753507657/accommodation-booking/tmp-1-1753507651178_azu5rk.jpg",
+      },
+      dob: faker.date
+        .past({years: 30, refDate: "2000-01-01"})
+        .toISOString()
+        .split("T")[0],
+      gender: faker.person.gender(),
+      city: faker.location.city(),
+      state: faker.location.state(),
+      country: faker.location.country(),
+      zip: faker.location.zipCode(),
+      addressline: faker.location.streetAddress(),
+      status: "active",
+      role: "admin",
+    });
+    await admin.save();
+    console.log("Created admin.");
+
     console.log("Seeding users...");
     const users = [];
     for (let i = 0; i < 5; i++) {
-      const firstName = faker.person.firstName();
-      const lastName = faker.person.lastName();
+      const firstName = faker.person.firstName().toLowerCase();
+      const lastName = faker.person.lastName().toLowerCase();
       const user = new User({
         email: faker.internet.email({firstName, lastName}).toLowerCase(),
         mobileNumber: faker.phone.number({style: "international"}),
-        password: firstName,
+        password: await bcrypt.hash(firstName, 10),
         firstName: firstName,
         lastName: lastName,
         username: faker.internet.username({firstName, lastName}),
@@ -80,7 +111,7 @@ const seedDB = async () => {
     for (let i = 0; i < 100; i++) {
       const randomCategory = faker.helpers.arrayElement(categories);
       const hotel = new Hotel({
-        owner: "688465ac32477c667b1ea113",
+        owner: admin._id,
         title: faker.company.name() + " Hotel",
         description: faker.lorem.paragraph(),
         content: faker.lorem.paragraphs(3),
